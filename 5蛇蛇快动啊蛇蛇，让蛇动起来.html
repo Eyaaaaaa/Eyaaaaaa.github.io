@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>js复制用模板</title>
+    <script src="jquery.min.js"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        #map {
+            margin: 50px auto;
+            width: 500px;
+            height: 500px;
+            background-color: pink;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <div id='map'></div>
+    <script>
+        var oMap = document.querySelector('#map')
+
+        ~(function (window, undefined) {
+            var Tools = {
+                random: function (min, max) {
+                    min = Math.ceil(min);
+                    max = Math.floor(max);
+                    return Math.floor(Math.random() * (max - min + 1)) + min;
+                },
+                remove: function (arr) {
+                    for (var i = arr.length - 1; i >= 0; i--) {
+                        // 删除页面中真正的那个元素
+                        arr[i].parentNode.removeChild(arr[i]);
+                        // 删除数组中的那个元素
+                        arr.splice(i, 1);
+                    }
+                }
+            };
+            window.Tools = Tools;
+        })(window);
+
+        ~(function (window, undefined) {
+            var aFood = []
+            function Food(options) {
+                options = options || {};
+                this.width = options.width || 20;
+                this.height = options.height || 20;
+                this.color = options.color || 'red'
+            }
+            Food.prototype.render = function (oMap) {
+                Tools.remove(aFood)
+                //render相当于渲染的意思，但是实际上并不属于特殊词汇，换成xx都可以，此处主要是把食物放到地图中
+                var oDiv = document.createElement('div');
+                oDiv.style.position = 'absolute';
+                oDiv.style.height = this.height + 'px';
+                oDiv.style.width = this.width + 'px';
+                oDiv.style.backgroundColor = this.color;
+
+                this.x = Tools.random(0, oMap.offsetWidth / this.width - 1) * this.width
+                this.y = Tools.random(0, oMap.offsetHeight / this.height - 1) * this.width
+                oDiv.style.top = this.y + 'px'
+                oDiv.style.left = this.x + 'px'
+
+                oMap.appendChild(oDiv)
+                aFood.push(oDiv)
+            }
+           
+            window.Food = Food;
+        }(window));
+
+        //添加蛇对象.js
+        ~(function (window, undefined) {
+            var aSnake = [] //为什么要这么写，为什么要删除蛇和创建数组
+            function Snake(options) {
+                options = options || {}
+                this.width = options.width || 20
+                this.height = options.height || 20
+                this.direction = options.direction || 'right'
+
+                //一个body疯狂写成baby和boby各种出错 
+                this.body = [
+                    {
+                        x: 3, y: 1, color: 'red',
+                    },
+                    {
+                        x: 2, y: 1, color: 'green',
+                    },
+                    {
+                        x: 1, y: 1, color: 'green',
+                    }
+                ];
+            }
+            Snake.prototype.render = function (oMap) {
+                Tools.remove(aSnake) ;       //应该是蛇移动了，删除之前的蛇模型
+                var oFrag = document.createDocumentFragment();
+                for (var i = 0; i < this.body.length; i++) {
+                    var oDiv = document.createElement('div')
+                    oDiv.style.position = 'absolute'
+                    oDiv.style.width = this.width + 'px'
+                    oDiv.style.height = this.height + 'px';
+
+                    oDiv.style.left = this.body[i].x * this.width + 'px';
+                    oDiv.style.top = this.body[i].y * this.height + 'px';
+
+                    oDiv.style.backgroundColor = this.body[i].color;
+
+                    oFrag.appendChild(oDiv)
+                    aSnake.push(oDiv)
+                }
+                oMap.appendChild(oFrag)
+            }
+            Snake.prototype.move = function(){
+            for(var i =this.body.length -1 ;i>0;i--){
+                this.body[i].x = this.body[i-1].x
+                this.body[i].y = this.body[i-1].y
+            }
+            //让头先动起来
+            var head = this.body[0]
+            switch(this.direction){
+                case 'right':
+                head.x += 1;
+                break;
+                case 'left':
+                head.x -= 1;
+                break;
+                case 'top':
+                head.y -= 1;
+                break;
+                case 'buttom':
+                head.y += 1;
+                break;
+            }
+        }
+
+            window.Snake = Snake;
+        })(window);
+
+        
+
+
+        //game.js
+        ~(function(window,undefined){
+            function Game(oMap){
+                this.oMap = oMap
+                this.oFood = new Food()
+                this.oSnake = new Snake()
+            }
+            Game.prototype.start = function(){
+                this.oFood.render(this.oMap)
+                this.oSnake.render(this.oMap)
+                
+                continueMove(this)
+            }
+            function continueMove(oGame){
+                var timer = setInterval(function(){
+                    oGame.oSnake.move(oGame)
+                    oGame.oSnake.render(oGame.oMap)
+                    
+                    var maxX = oGame.oMap.offsetWidth /oGame.oSnake.width
+                    var maxY = oGame.oMap.offsetHeight /oGame.oSnake.height
+
+                    var x = oGame.oSnake.body[0].x
+                    var y = oGame.oSnake.body[0].y
+
+                    //判断蛇的头部是否撞边
+                    if(x<0||x>=maxX){
+                        
+                        clearInterval(timer)
+                        alert('游戏结束，可以按f5重来')
+                    }
+                    if(y<0||y>=maxX){
+                        
+                        clearInterval(timer)
+                        alert('游戏结束，可以按f5重来')
+                    }
+                },150);
+            }
+            window.Game = Game;
+        })(window);
+
+
+        var oMap = document.querySelector('#map');
+        new Game(oMap).start();
+    </script>
+</body>
+
+</html>

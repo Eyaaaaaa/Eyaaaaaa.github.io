@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>js复制用模板</title>
+    <script src="jquery.min.js"></script>
+    <style>
+        *{
+            padding: 0;
+            margin: 0;
+        }
+        #map {
+            margin: 50px auto;
+            width: 500px;
+            height: 500px;
+            background-color: pink;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div id='map'></div>
+    <script>
+        var oMap = document.querySelector('#map')
+
+        var Tools = {
+            random:function (max,min){
+                min = Math.ceil(min)
+                max = Math.floor(max)
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+        };
+
+        function Food(options){
+            options = options || {};
+            this.width = options.width || 20;
+            this.height = options.height || 20;
+            this.color = options.color || 'red'
+        }
+
+        Food.prototype.render = function(oMap){
+            //render相当于渲染的意思，但是实际上并不属于特殊词汇，换成xx都可以，此处主要是把食物放到地图中
+            var oDiv = document.createElement('div');
+            oDiv.style.position = 'absolute';
+            oDiv.style.height = this.height +'px';
+            oDiv.style.width = this.width +'px';
+            oDiv.style.backgroundColor = this.color;
+
+            this.x = Tools.random(0,oMap.offsetWidth/this.width - 1)*this.width
+            this.y = Tools.random(0,oMap.offsetHeight/this.height - 1)*this.width
+            oDiv.style.top = this.y + 'px'
+            oDiv.style.left = this.x + 'px'
+
+            oMap.appendChild(oDiv)
+
+        }
+        new Food().render(oMap);
+    </script>
+</body>
+</html>
